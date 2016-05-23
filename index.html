@@ -1,7 +1,118 @@
 <!DOCTYPE html>
 <html>
+
+<head>
+    <title>Scatter Chart Multi Axis</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.1.3/Chart.bundle.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <style>
+    canvas {
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+    }
+    </style>
+</head>
+
 <body>
-    <h1>Hello World!</h1
-    <p>Hello from GitHub pages.</p>
+    <div style="width:75%">
+        <div>
+            <canvas id="canvas"></canvas>
+        </div>
+    </div>
+    <label for="xAxisSelect">X-Axis Property</label>
+    <select id="xAxisSelect" class="axisSelect"></select>
+    <label for="yAxisSelect">Y-Axis Property</label>
+    <select id="yAxisSelect" class="axisSelect"></select>
+    <button id="updateChart">Update Chart</button>
+    
+    
+    <script>
+    var randomScalingFactor = function() {
+        return (Math.random() > 0.5 ? 1.0 : -1.0) * Math.round(Math.random() * 100);
+    };
+    
+    var multiPropertyData = [];
+    for(var i = 0; i < 10; i++) {
+        multiPropertyData.push(
+            {   
+                propertyA : randomScalingFactor(),
+                propertyB : randomScalingFactor(),
+                propertyC : randomScalingFactor(),
+                propertyD : randomScalingFactor()            
+             }
+        );
+    }
+       
+    var axisSelects = $('.axisSelect');
+    var propertyKeys = Object.keys(multiPropertyData[0])
+    propertyKeys.forEach(function(key){
+        var option = $("<option></option").val(key).text(key);
+        
+        option.appendTo(axisSelects);       
+    });
+    
+        multiPropertyData.forEach(function(currentValue){
+       currentValue.x = currentValue.propertyA;
+       currentValue.y = currentValue.propertyB; 
+        
+    });
+    
+    $('#updateChart').click(function(){
+        var xAxisProperty = $('#xAxisSelect').val();
+        var yAxisProperty = $('#yAxisSelect').val();
+        window.myScatter.data.datasets[0].data.forEach(
+            function(currentValue) {
+                currentValue.x = currentValue[xAxisProperty];
+                currentValue.y = currentValue[yAxisProperty];
+            }
+        )
+        window.myScatter.update()
+        
+    });
+    
+    
+
+    var scatterChartData = {
+        datasets: [{
+            label: "My Dataset",
+            xAxisID: "x-axis-1",
+            yAxisID: "y-axis-1",
+            backgroundColor : "rgba(0,0,0,1)",
+            borderColor :  "rgba(0,0,0,1)",
+			data: multiPropertyData
+    }]};
+
+    window.onload = function() {
+        var ctx = document.getElementById("canvas").getContext("2d");
+        window.myScatter = Chart.Scatter(ctx, {
+        	data: scatterChartData,
+        	options: {
+                responsive: true,
+                showLines: false,
+	            hoverMode: 'single',
+            	title: {
+	                display: true,
+	                text: 'Chart.js Scatter Chart - Multi Axis'
+	            },
+	            scales: {
+	            	xAxes: [{
+	            		position: "bottom",
+	            		gridLines: {
+	            			zeroLineColor: "rgba(0,0,0,1)"
+	            		}
+	            	}],
+	            	 yAxes: [{
+		                type: "linear", // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+		                display: true,
+		                position: "left",
+		                id: "y-axis-1",
+		            }],
+	            }
+	        }
+        });
+    };
+    </script>
 </body>
+
 </html>
