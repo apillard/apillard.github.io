@@ -14,27 +14,52 @@
         -webkit-user-select: none;
         -ms-user-select: none;
     }
+	
+	.sliderAmount {
+		border: 0;
+		margin-left: 10px
+	}
+	.ui-slider {
+		margin: 10px
+	}
+	#filtersColumn {
+		width: 25%;
+		float:left
+	}
+	#canvasContainer {
+		width: 75%;
+		float: right
+	}
+	.axisContainer {
+		width: 100%;
+		margin: 10px
+	}
+	
     </style>
 </head>
 
 <body>
-    <div id="filterColumn" style="width:25%">
+    <div id="filtersColumn">
+		<div id="sliders"></div>
+		<div class="axisContainer">
+			<label for="xAxisSelect">X-Axis Property</label>
+			<select id="xAxisSelect" class="axisSelect"></select>
+		</div>
+		<div class="axisContainer">
+			<label for="yAxisSelect">Y-Axis Property</label>
+			<select id="yAxisSelect" class="axisSelect"></select>
+		</div>
+		<button id="updateChart">Update Chart</button>
 	</div>
-    <div style="width:75%">
-        <div>
-            <canvas id="canvas"></canvas>
-        </div>
-    </div>
-    <label for="xAxisSelect">X-Axis Property</label>
-    <select id="xAxisSelect" class="axisSelect"></select>
-    <label for="yAxisSelect">Y-Axis Property</label>
-    <select id="yAxisSelect" class="axisSelect"></select>
-    <button id="updateChart">Update Chart</button>
+	<div id="canvasContainer">
+		<canvas id="canvas"></canvas>
+	</div>
+
     
     
     <script>
     var randomScalingFactor = function() {
-        return (Math.random() > 0.5 ? 1.0 : -1.0) * Math.round(Math.random() * 100);
+        return Math.round(Math.random() * 100);
     };
     
     var multiPropertyData = [];
@@ -48,14 +73,18 @@
              }
         );
     }
+	
+	var defaultX = 'propertyA';
+	var defaultY = 'propertyB';
        
-    var axisSelects = $('.axisSelect');
+	var xAxisSelect = $('#xAxisSelect')
+	var yAxisSelect = $('#yAxisSelect')
     var propertyKeys = Object.keys(multiPropertyData[0]);
-	var filterColumn = $('#filterColumn');
+	var slidersDiv = $('#sliders');
 	var keyToSliderMap = {};
     propertyKeys.forEach(function(key){
         var option = $("<option></option").val(key).text(key);
-        option.appendTo(axisSelects);
+        option.appendTo([xAxisSelect, yAxisSelect]);
         
         var minValue = Number.MAX_VALUE;
         var maxValue = Number.MIN_VALUE
@@ -69,7 +98,9 @@
             }
         });
 		var sliderLabel = $("<label>" + key + "</label>");
-		var labelAmount = $("<input type=\"text\" readonly style=\"border:0\"></input").attr({type: "text"})
+		var labelAmount = $("<input></input")
+							.prop({type: "text", readonly: true})
+							.addClass("sliderAmount")
 		.val(minValue + " - " + maxValue)
 		var slider = $("<div></div>").slider({
 			range: true,
@@ -83,35 +114,33 @@
 		keyToSliderMap[key] = slider;
 
 
-		filterColumn.append(sliderLabel);
-		filterColumn.append(labelAmount);
-		filterColumn.append(slider);
+		slidersDiv.append(sliderLabel);
+		slidersDiv.append(labelAmount);
+		slidersDiv.append(slider);
         
     });
+	
+	xAxisSelect.val(defaultX);
+	yAxisSelect.val(defaultY);
+	
     
-       multiPropertyData.forEach(function(currentValue){
-       currentValue.x = currentValue.propertyA;
-       currentValue.y = currentValue.propertyB; 
-        
-    });
+	multiPropertyData.forEach(function(currentValue){
+		currentValue.x = currentValue[defaultX];
+		currentValue.y = currentValue[defaultY]; 
+	});
     
     $('#updateChart').click(function() {
 		var filteredData = multiPropertyData;
 		propertyKeys.forEach(function(key){
-			console.log("key",  key);
-			console.log("filteredData", filteredData);
 			filteredData = filteredData.filter(function(currentValue){
 				var slider = keyToSliderMap[key];
 				var minValue = slider.slider("values", 0);
 				var maxValue = slider.slider("values", 1);
-				console.log("slider", slider);
-				console.log("minValue", minValue);
-				console.log("maxValue", maxValue);
 				return currentValue[key] >= minValue && currentValue[key] <= maxValue;
 			});
 		});
-		var xAxisProperty = $('#xAxisSelect').val();
-        var yAxisProperty = $('#yAxisSelect').val();
+		var xAxisProperty = xAxisSelect.val();
+        var yAxisProperty = yAxisSelect.val();
 		filteredData.forEach(
             function(currentValue) {
                 currentValue.x = currentValue[xAxisProperty];
@@ -165,14 +194,6 @@
 				}, 
 				tooltips : {
 					callbacks: {
-						// title : function(tooltipItems, data) {
-						// 	console.log("tooltipItems", tooltipItems);
-						// 	console.log("data", data);
-						// 	return "Title";
-						// },
-						// beforeTitle : function(toolTipItems, data) {
-						// 	return "Before Title";
-						// },
 						label : function(tooltipItems, data){
 							var dataPoint = data.datasets[tooltipItems.datasetIndex]
 								.data[tooltipItems.index];
