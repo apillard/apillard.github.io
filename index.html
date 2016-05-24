@@ -2,44 +2,46 @@
 <html>
 
 <head>
-    <title>Scatter Chart Multi Axis</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.1.3/Chart.bundle.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+	<title>Multiple Property Live Scatter Chart</title>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.1.3/Chart.bundle.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+	<script src="https://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
 	<link rel="stylesheet" href="https://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
 
-    <style>
-    canvas {
-        -moz-user-select: none;
-        -webkit-user-select: none;
-        -ms-user-select: none;
-    }
-	
-	.sliderAmount {
-		border: 0;
-		margin-left: 10px
-	}
-	.ui-slider {
-		margin: 10px
-	}
-	#filtersColumn {
-		width: 25%;
-		float:left
-	}
-	#canvasContainer {
-		width: 75%;
-		float: right
-	}
-	.axisContainer {
-		width: 100%;
-		margin: 10px
-	}
-	
-    </style>
+	<style>
+		canvas {
+			-moz-user-select: none;
+			-webkit-user-select: none;
+			-ms-user-select: none;
+		}
+		
+		.sliderAmount {
+			border: 0;
+			margin-left: 10px
+		}
+		
+		.ui-slider {
+			margin: 10px
+		}
+		
+		#filtersColumn {
+			width: 25%;
+			float: left
+		}
+		
+		#canvasContainer {
+			width: 75%;
+			float: right
+		}
+		
+		.axisContainer {
+			margin: 10px
+		}
+	</style>
 </head>
 
 <body>
-    <div id="filtersColumn">
+	<div id="filtersColumn">
 		<div id="sliders"></div>
 		<div class="axisContainer">
 			<label for="xAxisSelect">X-Axis Property</label>
@@ -55,81 +57,83 @@
 		<canvas id="canvas"></canvas>
 	</div>
 
-    
-    
-    <script>
-    var randomScalingFactor = function() {
-        return Math.round(Math.random() * 100);
-    };
-    
-    var multiPropertyData = [];
-    for(var i = 0; i < 10; i++) {
-        multiPropertyData.push(
-            {   
-                propertyA : randomScalingFactor(),
-                propertyB : randomScalingFactor(),
-                propertyC : randomScalingFactor(),
-                propertyD : randomScalingFactor()
-             }
-        );
-    }
+
+
+	<script>
+	"use strict";
+	var randomScalingFactor = function() {
+		return Math.round(Math.random() * 100);
+	};
+
+	var multiPropertyData = [];
+	for(var i = 0; i < 10; i++) {
+		multiPropertyData.push({
+			propertyA : randomScalingFactor(),
+			propertyB : randomScalingFactor(),
+			propertyC : randomScalingFactor(),
+			propertyD : randomScalingFactor()
+		});
+	}
 	
-	var defaultX = 'propertyA';
-	var defaultY = 'propertyB';
-       
-	var xAxisSelect = $('#xAxisSelect')
-	var yAxisSelect = $('#yAxisSelect')
-    var propertyKeys = Object.keys(multiPropertyData[0]);
+	var xAxisSelect = $('#xAxisSelect');
+	var yAxisSelect = $('#yAxisSelect');
+	var propertyKeys = Object.keys(multiPropertyData[0]);
 	var slidersDiv = $('#sliders');
 	var keyToSliderMap = {};
-    propertyKeys.forEach(function(key){
-        var option = $("<option></option").val(key).text(key);
-        option.appendTo([xAxisSelect, yAxisSelect]);
-        
-        var minValue = Number.MAX_VALUE;
-        var maxValue = Number.MIN_VALUE
-        multiPropertyData.forEach(function(dataPoint) {
-            var currentValue = dataPoint[key];
-            if(currentValue < minValue) {
-                minValue = currentValue;
-            }
-            if(currentValue > maxValue) {
-                maxValue = currentValue;
-            }
-        });
+	propertyKeys.forEach(function(key){
+		var option = $("<option></option").val(key).text(key);
+		option.appendTo([xAxisSelect, yAxisSelect]);
+		
+		var minValue = Number.MAX_VALUE;
+		var maxValue = Number.MIN_VALUE;
+		multiPropertyData.forEach(function(dataPoint) {
+			var currentValue = dataPoint[key];
+			if(currentValue < minValue) {
+				minValue = currentValue;
+			}
+			if(currentValue > maxValue) {
+				maxValue = currentValue;
+			}
+		});
 		var sliderLabel = $("<label>" + key + "</label>");
 		var labelAmount = $("<input></input")
 							.prop({type: "text", readonly: true})
 							.addClass("sliderAmount")
-		.val(minValue + " - " + maxValue)
+							.val(minValue + " - " + maxValue);
 		var slider = $("<div></div>").slider({
 			range: true,
 			min: minValue,
 			max: maxValue,
 			values: [minValue, maxValue],
 			slide: function(event, ui) {
-				labelAmount.val(slider.slider("values", 0) + " - " + slider.slider("values", 1))
+				labelAmount.val(
+					slider.slider("values", 0)
+					+ " - " 
+					+ slider.slider("values", 1)
+				);
 			}
 		});
-		keyToSliderMap[key] = slider;
-
 
 		slidersDiv.append(sliderLabel);
 		slidersDiv.append(labelAmount);
 		slidersDiv.append(slider);
-        
-    });
+		
+		keyToSliderMap[key] = slider;
+	});
+	
+	var defaultX = 'propertyA';
+	var defaultY = 'propertyB';
 	
 	xAxisSelect.val(defaultX);
 	yAxisSelect.val(defaultY);
-	
-    
+
+
 	multiPropertyData.forEach(function(currentValue){
 		currentValue.x = currentValue[defaultX];
 		currentValue.y = currentValue[defaultY]; 
 	});
-    
-    $('#updateChart').click(function() {
+
+	$('#updateChart').click(function() {
 		var filteredData = multiPropertyData;
 		propertyKeys.forEach(function(key){
 			filteredData = filteredData.filter(function(currentValue){
@@ -140,74 +144,52 @@
 			});
 		});
 		var xAxisProperty = xAxisSelect.val();
-        var yAxisProperty = yAxisSelect.val();
-		filteredData.forEach(
-            function(currentValue) {
-                currentValue.x = currentValue[xAxisProperty];
-                currentValue.y = currentValue[yAxisProperty];
-            }
-        )
-		
-		
+		var yAxisProperty = yAxisSelect.val();
+		filteredData.forEach(function(currentValue) {
+			currentValue.x = currentValue[xAxisProperty];
+			currentValue.y = currentValue[yAxisProperty];
+		});
 
-        window.myScatter.data.datasets[0].data = filteredData;
-        window.myScatter.update()
-        
-    });
-    
-    
+		window.myScatter.data.datasets[0].data = filteredData;
+		window.myScatter.update();
+	
+	});
 
-    var scatterChartData = {
-        datasets: [{
-            label: "My Dataset",
-            xAxisID: "x-axis-1",
-            yAxisID: "y-axis-1",
-            backgroundColor : "rgba(0,0,0,1)",
-            borderColor :  "rgba(0,0,0,1)",
-			data: multiPropertyData
-    }]};
-
-    window.onload = function() {
-        var ctx = document.getElementById("canvas").getContext("2d");
-        window.myScatter = Chart.Scatter(ctx, {
-			data: scatterChartData,
+	window.onload = function() {
+		var ctx = document.getElementById("canvas").getContext("2d");
+		window.myScatter = Chart.Scatter(ctx, {
+			data: {
+				datasets: [{
+					label: "My Dataset",
+					backgroundColor: "rgba(0,0,0,1)",
+					borderColor: "rgba(0,0,0,1)",
+					data: multiPropertyData
+				}]
+			},
 			options: {
-                showLines: false,
-	            hoverMode: 'single',
-            	title: {
-	                display: true,
-	                text: 'Chart.js Scatter Chart - Multi Axis'
-	            },
-	            scales: {
-	            	xAxes: [{
-	            		position: "bottom",
-	            		gridLines: {
-	            			zeroLineColor: "rgba(0,0,0,1)"
-	            		}
-	            	}],
-	            	 yAxes: [{
-		                type: "linear", // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
-		                display: true,
-		                position: "left",
-		                id: "y-axis-1",
-		            }],
-				}, 
+				showLines: false,
+				hoverMode: 'single',
+				title: {
+					display: true,
+					text: 'Mutliple Property Live Scatter Chart'
+				},
 				tooltips : {
 					callbacks: {
-						label : function(tooltipItems, data){
-							var dataPoint = data.datasets[tooltipItems.datasetIndex]
-								.data[tooltipItems.index];
+						label : function(tooltipItems, data) {
+							var dataPoint = data
+											.datasets[tooltipItems.datasetIndex]
+											.data[tooltipItems.index];
 								return propertyKeys.map(function(key){
 									return key + ": " + dataPoint[key];
-								})
+								});
 						}
-					}	
+					}
 				}
 			}
 
-        });
-    };
-    </script>
+		});
+	};
+	</script>
 </body>
 
 </html>
